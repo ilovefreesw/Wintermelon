@@ -1,5 +1,5 @@
 # Wintermelon
-***Wintermelon*** is a C# console app-based workaround that emulates dual/multi monitor lockscreen feature in Windows 10/11. The ability to duplicate lockscreen existed until Windows 7 but Windows 10 & 11 have chosen to forgo this feature by displaying the lockscreen only on primary (or main) display while the secondary (or non-main) displays go black.
+***Wintermelon*** is a Rust console app-based workaround that emulates dual/multi monitor lockscreen feature in Windows 10/11. The ability to duplicate lockscreen existed until Windows 7 but Windows 10 & 11 have chosen to forgo this feature by displaying the lockscreen only on primary (or main) display while the secondary (or non-main) displays go black.
 
 The name ***Wintermelon*** is an acronym with 2 possible expansions:
 
@@ -17,27 +17,21 @@ Before switching to "Duplicate" mode the position of opened application windows 
 
 
 ## Requirements ##
-Wintermelon is a C# project relying on .NET Core 3.1 and it was originally developed on & for Windows 10 using Visual Studio 2019.
+Wintermelon is a Rust application for Windows 10 and 11.
 
-To build Wintermelon executable you'll need:
+To build Wintermelon you'll need:
 
-1) [.NET Core SDK 3.1](https://dotnet.microsoft.com/en-us/download/dotnet/3.1)
-
-2) [Visual Studio IDE](https://visualstudio.microsoft.com/vs/older-downloads/)
-
-3) Windows PC
+1) [Rust toolchain](https://www.rust-lang.org/tools/install) with the Windows MSVC target
 
 To test and install Wintermelon you'll need:
 
 1) Windows 10 or Windows 11 PC
 
-2) .NET Core Runtime 3.1
+2) PowerShell
 
-3) PowerShell
+3) Lockscreen enabled via *Personalize* settings menu
 
-4) Lockscreen enabled via *Personalize* settings menu
-
-The installer for the C# executable is a PowerShell script which will need to be executed by running it within a PowerShell terminal launched using administrator mode.
+The installer for the executable is a PowerShell script which will need to be executed by running it within a PowerShell terminal launched using administrator mode.
 
 
 ## Lockscreen personalization settings ##
@@ -56,40 +50,13 @@ To enable lockscreen for primary display in Windows 10 & 11:
 
 ## Building the executable ##
 
-1) Open the solution file *Wintermelon.sln* in Visual Studio. The C# source code resides in *Program.cs*.
+From the repository folder, build the release executable with:
 
-2) Build the solution by choosing **Build --> Build Solution (Ctrl+Shift+B)** from the menu bar.
+    cargo build --release
 
-3) If there are no build errors then select **Build --> Publish Wintermelon** and pass the following publish information:
+This creates *target\release\wintermelon.exe*. The program accepts `save` to save open-window positions and switch to Duplicate mode, or `restore` to switch to Extend mode and restore saved positions. With no recognized argument it exits without taking action.
 
-    **Target location**=bin\Release\netcoreapp3.1\publish\
-
-    **Configuration**=Release
-
-    **Delete existing files**=false
-
-    **Target Framework**=netcoreapp3.1
-
-    **Target Runtime**=win-x64
-
-    Expand "**Show all**" and set the options under it to following values:
-
-    **Configuration**=Release | Any CPU
-
-    **Target framework**=netcoreapp3.1
-
-    **Deployment mode**=Framework-dependent
-
-    **Target runtime**=win-x64
-
-    **Target location**=bin\Release\netcoreapp3.1\publish\
-
-
-    Expand "**File publish options**", set **Produce single file** as checked and leave **Enable ReadyToRun compilation** unchecked.
-
-4) Press Publish button which will generate the executable **Wintermelon.exe** at the path *bin\Release\netcoreapp3.1\publish\Wintermelon.exe* relative to the C# solution folder.
-
-This executable handles the switching of projection mode between Duplicate and Extend modes during lock/unlock events and does recording, retrieval of window positions from a text file saved at *C:\Users\Your_Username\AppData\Local\Wintermelon\winpos.txt*.
+The executable records and retrieves window positions from *%LOCALAPPDATA%\Wintermelon\winpos.txt*, retaining compatibility with settings written by the previous .NET version.
 
 ## Using Wintermelon ##
 To monitor lock/unlock event and switch the projection mode two separate scheduled tasks will need to be registered with the Windows Task Scheduler. These tasks are:
@@ -97,9 +64,11 @@ To monitor lock/unlock event and switch the projection mode two separate schedul
 - Task 1 : **Wintermelon screen lock save window position clone display**
 - Task 2 : **Wintermelon screen unlock extend display restore window**
 
-The PowerShell scripts *install_wintermelon.ps1* and *uninstall_wintermelon.ps1* will need to be executed to register or unregister the aforementioned tasks, respectively.
+The PowerShell scripts *install_wintermelon.ps1* and *uninstall_wintermelon.ps1* register or unregister the aforementioned tasks. The installer uses *target\release\wintermelon.exe* and verifies that it exists before registering the tasks.
 
 ### Registering the Scheduled tasks ###
+- First build the executable with `cargo build --release`.
+
 - Open PowerShell by going to Start Menu, searching for Windows PowerShell and choosing "Run As Administrator" from right click context menu.
 
 - To register the tasks run the following command
@@ -110,7 +79,7 @@ The PowerShell scripts *install_wintermelon.ps1* and *uninstall_wintermelon.ps1*
 
 - Lock the display by pressing Win+L keys and the lockscreen will appear on all displays.
 
-- Enter your login credentials to unlock the displays. When the displays are unlocked they are all in duplicate mode momentarily and then the C# app fetches the positions of active application windows and relocates them to the appropriate positions. This requires a 3 second wait and is a limitation of this workaround.
+- Enter your login credentials to unlock the displays. When the displays are unlocked they are all in duplicate mode momentarily and then the Rust app fetches the positions of active application windows and relocates them to the appropriate positions. This requires a 3 second wait and is a limitation of this workaround.
 
 
 ### Unregistering the Scheduled tasks ###
@@ -119,7 +88,4 @@ The PowerShell scripts *install_wintermelon.ps1* and *uninstall_wintermelon.ps1*
     `powershell -File uninstall_wintermelon.ps1`
 
 - Open Task Scheduler from Start Menu and you should no longer see the 2 tasks with names beginning with *Wintermelon* under Task Scheduler Library.
-
-
-
 

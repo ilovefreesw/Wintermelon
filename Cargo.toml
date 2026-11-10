@@ -1,0 +1,8 @@
+[package]
+name = "wintermelon"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "wintermelon"
+path = "src/main.rs"
